@@ -1,0 +1,52 @@
+# Docker Compose para desenvolvimento do Corelab Task Manager
+version: '3.8'
+
+services:
+  # Aplicação Next.js
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - '3000:3000'
+    environment:
+      - NODE_ENV=production
+      - MONGODB_URI=mongodb://mongo:27017/corelab-tasks
+    depends_on:
+      - mongo
+    networks:
+      - corelab-network
+
+  # MongoDB local (opcional, use apenas se não estiver usando MongoDB Atlas)
+  mongo:
+    image: mongo:7
+    ports:
+      - '27017:27017'
+    environment:
+      - MONGO_INITDB_DATABASE=corelab-tasks
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - corelab-network
+
+  # MongoDB Express para gerenciamento do banco (opcional)
+  mongo-express:
+    image: mongo-express:latest
+    ports:
+      - '8081:8081'
+    environment:
+      - ME_CONFIG_MONGODB_SERVER=mongo
+      - ME_CONFIG_MONGODB_PORT=27017
+      - ME_CONFIG_BASICAUTH_USERNAME=admin
+      - ME_CONFIG_BASICAUTH_PASSWORD=admin123
+    depends_on:
+      - mongo
+    networks:
+      - corelab-network
+
+volumes:
+  mongo_data:
+
+networks:
+  corelab-network:
+    driver: bridge
